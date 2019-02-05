@@ -1,3 +1,4 @@
+```
 usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
                     [-s SAMPLE_NAMES [SAMPLE_NAMES ...]] [-f FASTA_EXT]
                     [-g GFF_EXT] [-r REGEX]
@@ -18,3 +19,4 @@ optional arguments:
   -r REGEX, --regex REGEX
                         optionally set isoform grouping on id field (defaults
                         to parent field)
+```
