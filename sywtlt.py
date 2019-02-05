@@ -8,6 +8,7 @@ import multiprocessing as mp
 import os
 import shutil
 import sys
+import re
 
 import Bio
 import gffutils
@@ -81,12 +82,21 @@ def create_unique_dir(path, limit=99):
 
 # helper functions #####################################################################################################
 
-def group_ncbi(iso):
-    key = iso.attributes["Parent"][0]
-    return key
+def group_isos_by(iso, regex):
+    if regex is None:
+        key = iso.attributes["Parent"][0]
+        return key
+    else:
+        try:
+            text = iso.attributes["ID"][0]
+            search_obj = re.search(regex, text)
+            key = search_obj.groups()
+            return key
+        except Exception as e:
+            log.exception("regex failed: {}".format(e))
 
 
-def rank_isos_by_len_and_id(iso, db):
+def rank_isos_by(iso, db):
     iso_len = db.children_bp(iso, child_featuretype='CDS', merge=False, ignore_strand=False)
     return -iso_len, iso.attributes["ID"]  # biggest first, alphabetical for ties
 
@@ -134,21 +144,18 @@ def sample_input_generator(args):
 def process_sample(in_tup):
     sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex = in_tup
 
-    if group_regex is None:
-        group_by = group_ncbi
-    else:
-        # ToDo: non-standard ID based grouping
-        raise Exception('regex not yet implemented')
-
     db = get_db(in_gff_fn)
+
     fasta = Fasta(in_fasta_fn)
-    selected_isos = select_isoforms(sample_name, db, group_by, rank_isos_by_len_and_id)
+
+    selected_isos = select_isoforms(sample_name, db, group_regex)
+
     extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta)
 
     return sample_name
 
 
-def select_isoforms(sample_name, db, group_by, rank_by):
+def select_isoforms(sample_name, db, group_regex):
     iso_groups = dict()
     selected_isos = dict()
 
@@ -160,21 +167,21 @@ def select_isoforms(sample_name, db, group_by, rank_by):
         parents = sorted(list(parents), key=lambda p: (p.seqid, p.start, p.id))
         return parents
 
-    # group with group_by function
+    # group with group_isos_by function
     for iso in get_cds_parents(db):
         try:
-            group_key = group_by(iso)
-        except KeyError as e:
-            message = "KeyError - sample_name:{} - key:{} - error:{}".format(sample_name, iso.attributes["ID"], e)
+            group_key = group_isos_by(iso, group_regex)
+        except Exception as e:
+            message = "problem generating iso group key - sample_name:{} - id:{} - error:{}".format(sample_name, iso.attributes["ID"], e)
             log.debug(message)
             continue
         if group_key not in iso_groups:
             iso_groups[group_key] = []
         iso_groups[group_key].append(iso)
 
-    # sort groups with rank_by function and select first from each group
+    # sort groups with rank_isos_by function and select first from each group
     for iso_list in iso_groups.values():
-        iso = sorted(iso_list, key=lambda iso: rank_by(iso, db))[0]
+        iso = sorted(iso_list, key=lambda iso: rank_isos_by(iso, db))[0]
         selected_isos[iso.attributes["ID"][0]] = iso
 
     return selected_isos
@@ -266,32 +273,36 @@ class HelpAndQuitOnFailParser(argparse.ArgumentParser):
 
 
 def main():
-    parser = HelpAndQuitOnFailParser()
+    parser = HelpAndQuitOnFailParser(description=("returns the longest transcript per gene "
+                                                  "in both nucleotide space and peptide space "
+                                                  "along with a simplified gff with only the relevant lines."))
 
     # directories
-    parser.add_argument('-i', '--in_dir', help='path to directory with input gff and fasta', default="input")
-    parser.add_argument('-o', '--out_dir',
-                        help='path to output directory (created if missing, unique created if non-empty)',
-                        default="output")
+    parser.add_argument('-i', '--in_dir', type=str, default="input",
+                        help='path to directory with input gff and fasta')
+
+    parser.add_argument('-o', '--out_dir', type=str, default="output",
+                        help='path to output directory (created if missing, unique created if non-empty)')
 
     # sample names
-    parser.add_argument('-s', '--sample_names', nargs='+', help='one or more space separated sample_name(s)',
-                        default=['GCF_000789215.1_ASM78921v2_genomic'])
+    parser.add_argument('-s', '--sample_names', nargs='+', type=str, default=['GCF_000789215.1_ASM78921v2_genomic'],
+                        help='one or more space separated sample_name(s)')
 
     # extensions
-    parser.add_argument('-f', '--fasta_ext', help="optionally set non-default (.fna) file extension",
-                        default=".fna")
+    parser.add_argument('-f', '--fasta_ext', type=str, default=".fna",
+                        help="optionally set non-default (.fna) file extension")
 
-    parser.add_argument('-g', '--gff_ext', help='optionally set non-default (.gff) file extension', default=".gff")
+    parser.add_argument('-g', '--gff_ext', type=str, default=".gff",
+                        help='optionally set non-default (.gff) file extension')
 
     # regex
-    parser.add_argument('-r', '--regex', help='optionally set isoform grouping on id field (defaults to parent field)',
-                        default=None)
+    parser.add_argument('-r', '--regex', type=str, default=None,
+                        help='optionally set isoform grouping on id field (defaults to parent field)')
 
     args = parser.parse_args()
 
-    cpus = min(len(args.sample_names), mp.cpu_count())
-    with mp.Pool(cpus) as p:
+    processor_count = min(len(args.sample_names), mp.cpu_count())
+    with mp.Pool(processor_count) as p:
         data = p.map(process_sample, sample_input_generator(args))
 
     print(data)
