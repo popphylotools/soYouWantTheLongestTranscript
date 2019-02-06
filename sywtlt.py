@@ -22,7 +22,8 @@ from pyfaidx import Fasta
 class OneLineExceptionFormatter(logging.Formatter):
     """custom logging configuration for exceptions to
     format on a single line, but with <newline> markers
-    for easy reformating in a text editor"""
+    for easy reformatting in a text editor"""
+
     def formatException(self, exc_info):
         result = super().formatException(exc_info)
         return repr(result)
@@ -105,14 +106,23 @@ def get_frame(iso):
         return int(iso.frame)
 
 
+def get_cds_parents(db, level=1):
+    cds_list = list(db.features_of_type(featuretype='CDS'))
+    parents = set()
+    for cds in cds_list:
+        parents.update(db.parents(cds, level=level))
+    parents = sorted(list(parents), key=lambda p: (p.seqid, p.start, p.id))
+    return parents
+
+
 def get_db(in_gff_fn):
     db_fn = in_gff_fn + ".db"
     if os.path.isfile(db_fn):
         try:
             db = gffutils.FeatureDB(db_fn, keep_order=True)
             return db
-        except TypeError as e:
-            message = "Error reading db, creating {}.bak and recreating - db_fn:{} - error:{}".format(db_fn, db_fn, e)
+        except TypeError as _e:
+            message = "Error reading db, creating {}.bak and recreating - db_fn:{} - error:{}".format(db_fn, db_fn, _e)
             log.debug(message)
             shutil.copy2(db_fn, db_fn + '.bak')
 
@@ -131,7 +141,6 @@ def sample_input_generator(args):
     group_regex = args.regex
     out_dir = create_unique_dir(args.out_dir)
     for sample_name in args.sample_names:
-
         in_gff_fn = os.path.join(args.in_dir, sample_name + args.gff_ext)
         in_fasta_fn = os.path.join(args.in_dir, sample_name + args.fasta_ext)
 
@@ -156,20 +165,13 @@ def select_isoforms(sample_name, db, group_regex):
     iso_groups = dict()
     selected_isos = dict()
 
-    def get_cds_parents(db, level=1):
-        cds_list = list(db.features_of_type(featuretype='CDS'))
-        parents = set()
-        for cds in cds_list:
-            parents.update(db.parents(cds, level=level))
-        parents = sorted(list(parents), key=lambda p: (p.seqid, p.start, p.id))
-        return parents
-
     # group with group_isos_by function
     for iso in get_cds_parents(db):
         try:
             group_key = group_isos_by(iso, group_regex)
-        except Exception as e:
-            message = "problem generating iso group key - sample_name:{} - id:{} - error:{}".format(sample_name, iso.attributes["ID"], e)
+        except Exception as _e:
+            message = ("problem generating key for isoform deduplication - sample_name:{} - id:{} - "
+                       "error:{}").format(sample_name, iso.attributes["ID"], _e)
             log.debug(message)
             continue
         if group_key not in iso_groups:
@@ -178,7 +180,7 @@ def select_isoforms(sample_name, db, group_regex):
 
     # sort groups with rank_isos_by function and select first from each group
     for iso_list in iso_groups.values():
-        iso = sorted(iso_list, key=lambda iso: rank_isos_by(iso, db))[0]
+        iso = sorted(iso_list, key=lambda _iso: rank_isos_by(_iso, db))[0]
         selected_isos[iso.attributes["ID"][0]] = iso
 
     return selected_isos
@@ -191,20 +193,20 @@ def extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta):
     sorted_key_list = sorted(selected_isos.keys(), key=lambda k: (selected_isos[k].seqid, selected_isos[k].start))
 
     with open(os.path.join(out_dir, sample_name + ".fna"), 'w') as nuc_f, \
-         open(os.path.join(out_dir, sample_name + ".faa"), 'w') as pep_f, \
-         open(os.path.join(out_dir, sample_name + ".gff"), 'w') as gff_f:
+            open(os.path.join(out_dir, sample_name + ".faa"), 'w') as pep_f, \
+            open(os.path.join(out_dir, sample_name + ".gff"), 'w') as gff_f:
 
         for key in sorted_key_list:
             # remove exons filtering errors and empties
             cds_list = list(db.children(selected_isos[key], order_by="start", featuretype="CDS"))
             try:
                 n_seq = Seq("".join([c.sequence(fasta, use_strand=False) for c in cds_list]))
-            except KeyError as e:
-                message = "KeyError - sp:{} - key:{} - error:{}".format(sample_name, key, e)
+            except KeyError as _e:
+                message = "KeyError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
-            except ValueError as e:
-                message = "ValueError - sp:{} - key:{} - error:{}".format(sample_name, key, e)
+            except ValueError as _e:
+                message = "ValueError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
             if n_seq is "":
@@ -227,8 +229,8 @@ def extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta):
             # translate to peptide sequence filtering errors, internal stops, and empties
             try:
                 p_seq = trans_n_seq.translate()
-            except Bio.Data.CodonTable.TranslationError as e:
-                message = "TranslationError - sp:{} - key:{} - error:{}".format(sample_name, key, e)
+            except Bio.Data.CodonTable.TranslationError as _e:
+                message = "TranslationError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
             if "*" in p_seq[:-1]:
@@ -263,6 +265,7 @@ def extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta):
 class HelpAndQuitOnFailParser(argparse.ArgumentParser):
     """custom argparse configuration
     if error parsing, prints help and exits"""
+
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
