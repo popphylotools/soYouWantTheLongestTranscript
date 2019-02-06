@@ -6,13 +6,13 @@ import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description="for help with regex, visit: https://regex101.com/r/0C1B0B/2")
+    parser = argparse.ArgumentParser(description="for help with regex, visit: https://regex101.com/r/F561kR/4")
 
     parser.add_argument('-t', '--text', type=str,
-                        default="TRINITY_DN0_c0_g1::TRINITY_DN0_c0_g1_i1::g.13::m.13",
+                        default="TR34869|C1_G2_I2|M.23583_R0",
                         help='test text to search')
 
-    parser.add_argument('-r', '--regex', type=str, default=r'^(.+?)::.+?::(.+?)::.+$',
+    parser.add_argument('-r', '--regex', type=str, default=r'^(.+?)\|(.+?)_(.+?)_',
                         help='test pattern to search with')
 
     args = parser.parse_args()

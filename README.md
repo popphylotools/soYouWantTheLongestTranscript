@@ -33,7 +33,7 @@ optional arguments:
 
 -----
 
-when using regex, quote the string like so:
+when using regex, quote the string to avoide problems with special characters:
 
 ```
 python regex_test.py -r "^(.+?)\|(.+?)_(.+?)_"
