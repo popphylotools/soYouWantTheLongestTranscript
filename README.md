@@ -1,3 +1,5 @@
+help:
+
 ```
 usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
                  [-s SAMPLE_NAMES [SAMPLE_NAMES ...]] [-f FASTA_EXT]
@@ -23,3 +25,13 @@ optional arguments:
                         optionally set isoform grouping on id field (defaults
                         to parent field)
 ```
+
+-----
+
+when using regex, quote the string like so:
+
+```
+python regex_test.py -r "^(.+?)::.+?::(.+?)::.+$"
+```
+
+for more information on how to use regex, check out this [example](https://regex101.com/r/0C1B0B/1)

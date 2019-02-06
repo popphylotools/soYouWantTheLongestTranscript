@@ -87,13 +87,10 @@ def group_isos_by(iso, regex):
         key = iso.attributes["Parent"][0]
         return key
     else:
-        try:
-            text = iso.attributes["ID"][0]
-            search_obj = re.search(regex, text)
-            key = search_obj.groups()
-            return key
-        except Exception as e:
-            log.exception("regex failed: {}".format(e))
+        text = iso.attributes["ID"][0]
+        search_obj = re.search(regex, text)
+        key = search_obj.groups()
+        return key
 
 
 def rank_isos_by(iso, db):
