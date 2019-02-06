@@ -272,7 +272,8 @@ class HelpAndQuitOnFailParser(argparse.ArgumentParser):
 def main():
     parser = HelpAndQuitOnFailParser(description=("returns the longest transcript per gene "
                                                   "in both nucleotide space and peptide space "
-                                                  "along with a simplified gff with only the relevant lines."))
+                                                  "along with a simplified gff with only the relevant lines."
+                                                  "for help with regex, visit: https://regex101.com/r/F561kR/3"))
 
     # directories
     parser.add_argument('-i', '--in_dir', type=str, default="input",
