@@ -1,4 +1,8 @@
-help:
+# soYouWantTheLongestTranscript
+
+This tool prepares genomes/transcriptomes for tasks such as orthology prediction, where multiple isoforms per gene are undesireable. It ingests a fasta file (a genome/transcriptome in nucleotide space) and a gff file, and filters the genome/transcriptome down to the longest transcript for each gene. It can process multiple data sources at once, and can accommodate variable formatting of the id field in the gff file using regex (examples provided below for common formats). 
+
+# help:
 
 ```
 usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
@@ -29,7 +33,7 @@ optional arguments:
 
 -----
 
-when using regex, quote the string like so:
+when using regex, quote the string to avoide problems with special characters:
 
 ```
 python regex_test.py -r "^(.+?)\|(.+?)_(.+?)_"
