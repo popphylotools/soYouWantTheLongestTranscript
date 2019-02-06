@@ -32,7 +32,7 @@ optional arguments:
 when using regex, quote the string like so:
 
 ```
-python regex_test.py -r "^(.+?)\|(.+?)_(.+?)_.+$"
+python regex_test.py -r "^(.+?)\|(.+?)_(.+?)_"
 ```
 
-for more information on how to use regex, check out this [example](https://regex101.com/r/F561kR/3)
+for more information on how to use regex, check out this [example](https://regex101.com/r/F561kR/4)
