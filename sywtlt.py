@@ -270,33 +270,34 @@ class HelpAndQuitOnFailParser(argparse.ArgumentParser):
 
 
 def main():
-    parser = HelpAndQuitOnFailParser(description=("returns the longest transcript per gene "
+    parser = HelpAndQuitOnFailParser(description=("Returns the longest transcript per gene "
                                                   "in both nucleotide space and peptide space "
-                                                  "along with a simplified gff with only the relevant lines."
-                                                  "for help with regex, visit: https://regex101.com/r/F561kR/4"))
+                                                  "along with a simplified gff with only the relevant lines."))
 
     # directories
     parser.add_argument('-i', '--in_dir', type=str, default="input",
-                        help='path to directory with input gff and fasta')
+                        help='Path to directory with input gff and fasta.')
 
     parser.add_argument('-o', '--out_dir', type=str, default="output",
-                        help='path to output directory (created if missing, unique created if non-empty)')
+                        help='Path to output directory (created if missing, unique created if non-empty).')
 
     # sample names
     parser.add_argument('-s', '--sample_names', nargs='+', type=str, default=['GCF_000789215.1_ASM78921v2_genomic'],
-                        help='one or more space separated sample_name(s)')
+                        help='One or more space separated sample_name(s).')
 
     # extensions
     parser.add_argument('-f', '--fasta_ext', type=str, default=".fna",
-                        help="optionally set non-default (.fna) file extension")
+                        help="Optionally set non-default (.fna) file extension.")
 
     parser.add_argument('-g', '--gff_ext', type=str, default=".gff",
-                        help='optionally set non-default (.gff) file extension')
+                        help='Optionally set non-default (.gff) file extension.')
 
     # regex
     parser.add_argument('-r', '--regex', type=str, default=None,
-                        help=('optionally group isoforms on id field using regex '
-                              '(by default finds competing isoforms using parent field)'))
+                        help=('Optionally group isoforms on id field using regex. '
+                              'By default parent field is used to find competing isoforms. '
+                              'Quote this parameter to avoid problems with special characters. '
+                              'For help with regex, visit: https://regex101.com/r/F561kR/4'))
 
     args = parser.parse_args()
 

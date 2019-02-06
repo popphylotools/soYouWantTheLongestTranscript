@@ -9,34 +9,27 @@ usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
                  [-s SAMPLE_NAMES [SAMPLE_NAMES ...]] [-f FASTA_EXT]
                  [-g GFF_EXT] [-r REGEX]
 
-returns the longest transcript per gene in both nucleotide space and peptide
+Returns the longest transcript per gene in both nucleotide space and peptide
 space along with a simplified gff with only the relevant lines.
 
 optional arguments:
   -h, --help            show this help message and exit
   -i IN_DIR, --in_dir IN_DIR
-                        path to directory with input gff and fasta
+                        Path to directory with input gff and fasta.
   -o OUT_DIR, --out_dir OUT_DIR
-                        path to output directory (created if missing, unique
-                        created if non-empty)
+                        Path to output directory (created if missing, unique
+                        created if non-empty).
   -s SAMPLE_NAMES [SAMPLE_NAMES ...], --sample_names SAMPLE_NAMES [SAMPLE_NAMES ...]
-                        one or more space separated sample_name(s)
+                        One or more space separated sample_name(s).
   -f FASTA_EXT, --fasta_ext FASTA_EXT
-                        optionally set non-default (.fna) file extension
+                        Optionally set non-default (.fna) file extension.
   -g GFF_EXT, --gff_ext GFF_EXT
-                        optionally set non-default (.gff) file extension
+                        Optionally set non-default (.gff) file extension.
   -r REGEX, --regex REGEX
-                        optionally group isoforms on id field using regex (by
-                        default finds competing isoforms using parent field)
+                        Optionally group isoforms on id field using regex. By
+                        default parent field is used to find competing
+                        isoforms. Quote this parameter to avoid problems with
+                        special characters. For help with regex, visit:
+                        https://regex101.com/r/F561kR/4
 
 ```
-
------
-
-when using regex, quote the string to avoide problems with special characters:
-
-```
-python regex_test.py -r "^(.+?)\|(.+?)_(.+?)_"
-```
-
-for more information on how to use regex, check out this [example](https://regex101.com/r/F561kR/4)
