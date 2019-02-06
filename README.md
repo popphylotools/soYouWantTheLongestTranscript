@@ -1,6 +1,6 @@
 # soYouWantTheLongestTranscript
 
-This tool prepares genomes/transcriptomes for tasks such as orthology prediction, where multiple isoforms per gene are undesirable. It ingests a fasta file (a genome/transcriptome in nucleotide space) and a gff file, and filters the genome/transcriptome down to the longest transcript for each gene. It can process multiple data sources at once, and can accommodate variable formatting of the id field in the gff file using regex (examples provided below for common formats).
+This tool prepares genomes/transcriptomes for tasks such as orthology prediction, where multiple isoforms per gene are undesirable. It ingests a fasta file (a genome/transcriptome in nucleotide space) and a gff file, and filters the genome/transcriptome down to the longest transcript for each gene. It supports processing multiple genomes in parallel, and in the absence of a parent attribute, it supports deduplication of isoforms using regex on a hierarchical id attribute (examples provided below for common formats).
 
 # help:
 
