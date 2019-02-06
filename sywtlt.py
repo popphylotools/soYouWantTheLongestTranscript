@@ -108,7 +108,7 @@ def get_frame(iso):
 
 
 def get_cds_parents(db):
-    query = ('SELECT relations.parent '
+    query = ('SELECT DISTINCT relations.parent '
              'FROM relations '
              'WHERE relations.level = "1" '
              'AND relations.child IN '
