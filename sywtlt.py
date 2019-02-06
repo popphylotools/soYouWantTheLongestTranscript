@@ -6,9 +6,9 @@ import argparse
 import logging
 import multiprocessing as mp
 import os
+import re
 import shutil
 import sys
-import re
 
 import Bio
 import gffutils
@@ -96,7 +96,8 @@ def group_isos_by(iso, regex):
 
 def rank_isos_by(iso, db):
     iso_len = db.children_bp(iso, child_featuretype='CDS', merge=False, ignore_strand=False)
-    return -iso_len, iso.attributes["ID"]  # biggest first, alphabetical for ties
+    sort_key = -iso_len, iso.attributes["ID"][0]  # biggest first, alphabetical for ties
+    return sort_key
 
 
 def get_frame(iso):
@@ -106,12 +107,18 @@ def get_frame(iso):
         return int(iso.frame)
 
 
-def get_cds_parents(db, level=1):
-    cds_list = list(db.features_of_type(featuretype='CDS'))
-    parents = set()
-    for cds in cds_list:
-        parents.update(db.parents(cds, level=level))
-    parents = sorted(list(parents), key=lambda p: (p.seqid, p.start, p.id))
+def get_cds_parents(db):
+    query = ('SELECT relations.parent '
+             'FROM relations '
+             'WHERE relations.level = "1" '
+             'AND relations.child IN '
+             '    (SELECT features.id '
+             '    FROM features '
+             '    WHERE features.featuretype = "CDS");')
+
+    cur = db.execute(query)
+    parent_keys = (value for row in cur.fetchall() for value in row)
+    parents = (db[key] for key in parent_keys)
     return parents
 
 
@@ -170,7 +177,7 @@ def select_isoforms(sample_name, db, group_regex):
         try:
             group_key = group_isos_by(iso, group_regex)
         except Exception as _e:
-            message = ("problem generating key for isoform deduplication - sample_name:{} - id:{} - "
+            message = ("couldn't generate key for isoform deduplication - sample_name:{} - id:{} - "
                        "error:{}").format(sample_name, iso.attributes["ID"], _e)
             log.debug(message)
             continue
@@ -202,15 +209,15 @@ def extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta):
             try:
                 n_seq = Seq("".join([c.sequence(fasta, use_strand=False) for c in cds_list]))
             except KeyError as _e:
-                message = "KeyError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
+                message = "KeyError - sample_name:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
             except ValueError as _e:
-                message = "ValueError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
+                message = "ValueError - sample_name:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
             if n_seq is "":
-                message = "Excluding - sp:{} - key:{} - n_seq is empty".format(sample_name, key)
+                message = "Excluding - sample_name:{} - key:{} - n_seq is empty".format(sample_name, key)
                 log.info(message)
                 continue
             # take reverse complement if appropriate
@@ -230,15 +237,15 @@ def extract_and_write_sequences(sample_name, out_dir, selected_isos, db, fasta):
             try:
                 p_seq = trans_n_seq.translate()
             except Bio.Data.CodonTable.TranslationError as _e:
-                message = "TranslationError - sp:{} - key:{} - error:{}".format(sample_name, key, _e)
+                message = "TranslationError - sample_name:{} - key:{} - error:{}".format(sample_name, key, _e)
                 log.info(message)
                 continue
             if "*" in p_seq[:-1]:
-                message = "Excluding - sp:{} - key:{} - internal stop codon".format(sample_name, key)
+                message = "Excluding - sample_name:{} - key:{} - internal stop codon".format(sample_name, key)
                 log.info(message)
                 continue
             if len(p_seq) == 0:
-                message = "Excluding - sp:{} - key:{} - p_seq is empty".format(sample_name, key)
+                message = "Excluding - sample_name:{} - key:{} - p_seq is empty".format(sample_name, key)
                 log.info(message)
                 continue
 
