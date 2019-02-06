@@ -34,4 +34,4 @@ when using regex, quote the string like so:
 python regex_test.py -r "^(.+?)::.+?::(.+?)::.+$"
 ```
 
-for more information on how to use regex, check out this [example](https://regex101.com/r/0C1B0B/1)
+for more information on how to use regex, check out this [example](https://regex101.com/r/0C1B0B/2)

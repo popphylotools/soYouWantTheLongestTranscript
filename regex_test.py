@@ -6,7 +6,7 @@ import argparse
 
 
 def main():
-    parser = argparse.ArgumentParser(description="for help with regex, visit: https://regex101.com/r/0C1B0B/1")
+    parser = argparse.ArgumentParser(description="for help with regex, visit: https://regex101.com/r/0C1B0B/2")
 
     parser.add_argument('-t', '--text', type=str,
                         default="TRINITY_DN0_c0_g1::TRINITY_DN0_c0_g1_i1::g.13::m.13",
