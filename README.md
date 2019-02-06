@@ -22,8 +22,9 @@ optional arguments:
   -g GFF_EXT, --gff_ext GFF_EXT
                         optionally set non-default (.gff) file extension
   -r REGEX, --regex REGEX
-                        optionally set isoform grouping on id field (defaults
-                        to parent field)
+                        optionally group isoforms on id field using regex (by
+                        default finds competing isoforms using parent field)
+
 ```
 
 -----

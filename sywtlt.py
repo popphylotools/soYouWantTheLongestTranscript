@@ -294,7 +294,8 @@ def main():
 
     # regex
     parser.add_argument('-r', '--regex', type=str, default=None,
-                        help='optionally set isoform grouping on id field (defaults to parent field)')
+                        help=('optionally group isoforms on id field using regex '
+                              '(by default finds competing isoforms using parent field)'))
 
     args = parser.parse_args()
 
