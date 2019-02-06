@@ -122,11 +122,13 @@ def get_cds_parents(db):
     return parents
 
 
-def get_db(in_gff_fn):
+def get_db(in_gff_fn, freeze_attribute_order=False):
     db_fn = in_gff_fn + ".db"
     if os.path.isfile(db_fn):
         try:
-            db = gffutils.FeatureDB(db_fn, keep_order=True)
+            db = gffutils.FeatureDB(db_fn,
+                                    keep_order=freeze_attribute_order,
+                                    sort_attribute_values=freeze_attribute_order)
             return db
         except TypeError as _e:
             message = "Error reading db, creating {}.bak and recreating - db_fn:{} - error:{}".format(db_fn, db_fn, _e)
@@ -137,7 +139,9 @@ def get_db(in_gff_fn):
                             dbfn=db_fn,
                             force=True,
                             merge_strategy='merge',
-                            id_spec=['ID', 'Name'])
+                            id_spec=['ID', 'Name'],
+                            keep_order=freeze_attribute_order,
+                            sort_attribute_values=freeze_attribute_order)
 
     return db
 
@@ -146,18 +150,19 @@ def get_db(in_gff_fn):
 
 def sample_input_generator(args):
     group_regex = args.regex
+    freeze_attribute_order = args.freeze_attribute_order
     out_dir = create_unique_dir(args.out_dir)
     for sample_name in args.sample_names:
         in_gff_fn = os.path.join(args.in_dir, sample_name + args.gff_ext)
         in_fasta_fn = os.path.join(args.in_dir, sample_name + args.fasta_ext)
 
-        yield sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex
+        yield sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex, freeze_attribute_order
 
 
 def process_sample(in_tup):
-    sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex = in_tup
+    sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex, freeze_attribute_order = in_tup
 
-    db = get_db(in_gff_fn)
+    db = get_db(in_gff_fn, freeze_attribute_order)
 
     fasta = Fasta(in_fasta_fn)
 
@@ -308,6 +313,13 @@ def main():
                               'By default parent field is used to find competing isoforms. '
                               'Quote this parameter to avoid problems with special characters. '
                               'For help with regex, visit: https://regex101.com/r/F561kR/4'))
+
+    # speedup
+    parser.add_argument('--freeze_attribute_order', help=("Due to implementation, a slight speed boost can be obtained "
+                                                          "if you don't care about maintaining attribute order. "
+                                                          "This option exists for regression testing, or for workflows "
+                                                          "for which this order matters."),
+                        action='store_true')
 
     args = parser.parse_args()
 
