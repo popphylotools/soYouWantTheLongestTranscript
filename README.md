@@ -7,7 +7,7 @@ This tool prepares genomes/transcriptomes for tasks such as orthology prediction
 ```
 usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
                  [-s SAMPLE_NAMES [SAMPLE_NAMES ...]] [-f FASTA_EXT]
-                 [-g GFF_EXT] [-r REGEX]
+                 [-g GFF_EXT] [-r REGEX] [--freeze_attribute_order]
 
 Returns the longest transcript per gene in both nucleotide space and peptide
 space along with a simplified gff with only the relevant lines.
@@ -31,5 +31,10 @@ optional arguments:
                         isoforms. Quote this parameter to avoid problems with
                         special characters. For help with regex, visit:
                         https://regex101.com/r/F561kR/4
+  --freeze_attribute_order
+                        Due to implementation, a slight speed boost can be
+                        obtained if you don't care about maintaining attribute
+                        order. This option exists for regression testing, or
+                        for workflows for which this order matters.
 
 ```
