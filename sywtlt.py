@@ -48,7 +48,7 @@ root.addHandler(handler)
 log = logging.getLogger("extractor.py")
 
 
-# directory management #################################################################################################
+# helper functions #####################################################################################################
 
 def get_unique_dir(path, width=3):
     # if it doesn't exist, create
@@ -78,8 +78,6 @@ def get_unique_dir(path, width=3):
 
     return new_path
 
-
-# helper functions #####################################################################################################
 
 def group_isos_by(iso, regex):
     if regex is None:
