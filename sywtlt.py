@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+from glob import glob
 
 import Bio
 import gffutils
@@ -49,36 +50,33 @@ log = logging.getLogger("extractor.py")
 
 # directory management #################################################################################################
 
-def create_unique_dir(path, limit=99):
-    """Return a path to an empty directory. Either the dir at path, or a dir of the form 'path + _01'
-    :param path: The initial path to use
-    :param limit: The maximum number of directory variations this function will attempt to create.
-    :return: A path to an empty directory.
-    """
+def get_unique_dir(path, width=3):
+    # if it doesn't exist, create
     if not os.path.isdir(path):
-        log.debug("Creating output directory - {}".format(path))
+        log.debug("Creating new directory - {}".format(path))
         os.makedirs(path)
-    else:
-        width = len(str(limit))
-        original = path.rstrip(os.sep)
-        if len(os.listdir(original)) == 0:
-            log.debug("Using output directory - {}".format(path))
-            return original  # folder empty, let's use it
-        count = 1
-        while count < limit:
-            try:
-                os.mkdir(path)
-                log.debug("Creating output directory - {}".format(path))
-                return path
-            except OSError as path_error:
-                if path_error.errno == 17:  # file exists
-                    path = "{0}_{1:0>{2}}".format(original, count, width)
-                    count += 1
-                else:
-                    raise
+        return path
+
+    # if it's empty, use
+    if not os.listdir(path):
+        log.debug("Using empty directory - {}".format(path))
+        return path
+
+    # otherwise, increment the highest number folder in the series
+
+    def get_trailing_number(search_text):
+        serch_obj = re.search(r"([0-9]+)$", search_text)
+        if not serch_obj:
+            return 0
         else:
-            msg = "could not uniquely create directory {0}: limit `{1}` reached"
-            raise Exception(msg.format(original, limit))
+            return int(serch_obj.group(1))
+
+    dirs = glob(path + "*")
+    next_num = sorted([get_trailing_number(d) for d in dirs])[-1] + 1
+    new_path = "{0}_{1:0>{2}}".format(path, next_num, width)
+    os.makedirs(new_path)
+
+    return new_path
 
 
 # helper functions #####################################################################################################
@@ -149,7 +147,7 @@ def get_db(in_gff_fn, freeze_attribute_order=False):
 # core logic ###########################################################################################################
 
 def param_dict_generator(args):
-    out_dir = create_unique_dir(args.out_dir)
+    out_dir = get_unique_dir(args.out_dir)
 
     for sample_name in args.sample_names:
         yield {"sample_name": sample_name,
