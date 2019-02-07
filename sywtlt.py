@@ -148,20 +148,23 @@ def get_db(in_gff_fn, freeze_attribute_order=False):
 
 # core logic ###########################################################################################################
 
-def sample_input_generator(args):
-    group_regex = args.regex
-    freeze_attribute_order = args.freeze_attribute_order
+def param_dict_generator(args):
     out_dir = create_unique_dir(args.out_dir)
+
     for sample_name in args.sample_names:
-        in_gff_fn = os.path.join(args.in_dir, sample_name + args.gff_ext)
-        in_fasta_fn = os.path.join(args.in_dir, sample_name + args.fasta_ext)
+        yield {"sample_name": sample_name,
+               "in_gff_fn": os.path.join(args.in_dir, sample_name + args.gff_ext),
+               "in_fasta_fn": os.path.join(args.in_dir, sample_name + args.fasta_ext),
+               "out_dir": out_dir,
+               "group_regex": args.regex,
+               "freeze_attribute_order": args.freeze_attribute_order}
 
-        yield sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex, freeze_attribute_order
+
+def spawn(param_dict):
+    return process_sample(**param_dict)
 
 
-def process_sample(in_tup):
-    sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex, freeze_attribute_order = in_tup
-
+def process_sample(sample_name, in_gff_fn, in_fasta_fn, out_dir, group_regex=None, freeze_attribute_order=False):
     db = get_db(in_gff_fn, freeze_attribute_order)
 
     fasta = Fasta(in_fasta_fn)
@@ -325,7 +328,7 @@ def main():
 
     processor_count = min(len(args.sample_names), mp.cpu_count())
     with mp.Pool(processor_count) as p:
-        data = p.map(process_sample, sample_input_generator(args))
+        data = p.map(spawn, param_dict_generator(args))
 
     print(data)
 
