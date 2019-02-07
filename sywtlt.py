@@ -282,7 +282,7 @@ class HelpAndQuitOnFailParser(argparse.ArgumentParser):
     if error parsing, prints help and exits"""
 
     def error(self, message):
-        sys.stderr.write('error: %s\n' % message)
+        sys.stderr.write('error: {}\n'.format(message))
         self.print_help()
         sys.exit(2)
 
