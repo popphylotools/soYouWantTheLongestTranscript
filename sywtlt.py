@@ -74,8 +74,9 @@ def get_unique_dir(path, width=3):
     dirs = glob(path + "*")
     next_num = sorted([get_trailing_number(d) for d in dirs])[-1] + 1
     new_path = "{0}_{1:0>{2}}".format(path, next_num, width)
-    os.makedirs(new_path)
 
+    log.debug("Creating new incremented directory - {}".format(new_path))
+    os.makedirs(new_path)
     return new_path
 
 
