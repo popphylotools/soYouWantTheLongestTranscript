@@ -8,7 +8,7 @@ This tool prepares genomes/transcriptomes for tasks such as orthology prediction
 
 [multi-part example](https://regex101.com/r/F561kR/4)
 
-# help:
+# usage:
 
 ```
 usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
