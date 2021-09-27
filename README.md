@@ -11,7 +11,7 @@ This tool prepares genomes/transcriptomes for tasks such as orthology prediction
 # usage:
 
 ```
-usage: sywtlt.py [-h] [-i IN_DIR] [-o OUT_DIR]
+usage: longest_transcript.py [-h] [-i IN_DIR] [-o OUT_DIR]
                  [-s SAMPLE_NAMES [SAMPLE_NAMES ...]] [-f FASTA_EXT]
                  [-g GFF_EXT] [-r REGEX] [--freeze_attribute_order]
 
